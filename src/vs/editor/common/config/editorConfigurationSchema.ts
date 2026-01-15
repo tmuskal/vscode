@@ -63,6 +63,15 @@ const editorConfiguration: IConfigurationNode = {
 			default: EDITOR_MODEL_DEFAULTS.largeFileOptimizations,
 			description: nls.localize('largeFileOptimizations', "Special handling for large files to disable certain memory intensive features.")
 		},
+		'editor.textDirection': {
+			enum: ['ltr', 'rtl'],
+			default: 'ltr',
+			enumDescriptions: [
+				nls.localize('editor.textDirection.ltr', "Render the editor layout using a left-to-right direction."),
+				nls.localize('editor.textDirection.rtl', "Render the editor layout using a right-to-left direction."),
+			],
+			markdownDescription: nls.localize('editor.textDirection', "Controls the base layout direction of the editor UI, including the gutter, minimap, and other chrome.")
+		},
 		'editor.wordBasedSuggestions': {
 			enum: ['off', 'offWithInlineSuggestions', 'currentDocument', 'matchingDocuments', 'allDocuments'],
 			default: 'matchingDocuments',

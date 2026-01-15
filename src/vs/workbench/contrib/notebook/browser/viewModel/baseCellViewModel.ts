@@ -8,7 +8,7 @@ import { Disposable, IDisposable, IReference, MutableDisposable, dispose } from 
 import { Mimes } from '../../../../../base/common/mime.js';
 import { ICodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
-import { IEditorCommentsOptions } from '../../../../../editor/common/config/editorOptions.js';
+import { EditorOption, IEditorCommentsOptions } from '../../../../../editor/common/config/editorOptions.js';
 import { IPosition } from '../../../../../editor/common/core/position.js';
 import { IRange, Range } from '../../../../../editor/common/core/range.js';
 import { Selection } from '../../../../../editor/common/core/selection.js';
@@ -109,6 +109,10 @@ export abstract class BaseCellViewModel extends Disposable {
 	protected _textEditor?: ICodeEditor;
 	get editorAttached(): boolean {
 		return !!this._textEditor;
+	}
+	private _textDirection: 'ltr' | 'rtl' = 'ltr';
+	get textDirection(): 'ltr' | 'rtl' {
+		return this._textDirection;
 	}
 	private _editorListeners: IDisposable[] = [];
 	private _editorViewStates: editorCommon.ICodeEditorViewState | null = null;
@@ -301,6 +305,8 @@ export abstract class BaseCellViewModel extends Disposable {
 			return;
 		}
 
+		this._updateTextDirection(editor.getOption(EditorOption.textDirection));
+
 		editor.changeDecorations((accessor) => {
 			this._resolvedDecorations.forEach((value, key) => {
 				if (key.startsWith('_lazy_')) {
@@ -316,6 +322,11 @@ export abstract class BaseCellViewModel extends Disposable {
 		});
 
 		this._editorListeners.push(editor.onDidChangeCursorSelection(() => { this._onDidChangeState.fire({ selectionChanged: true }); }));
+		this._editorListeners.push(editor.onDidChangeConfiguration(e => {
+			if (e.hasChanged(EditorOption.textDirection)) {
+				this._updateTextDirection(editor.getOption(EditorOption.textDirection), true);
+			}
+		}));
 		this._editorListeners.push(this._inlineChatSessionService.onWillStartSession((e) => {
 			if (e === this._textEditor && this.textBuffer.getLength() === 0) {
 				this.enableAutoLanguageDetection();
@@ -394,11 +405,27 @@ export abstract class BaseCellViewModel extends Disposable {
 
 	restoreEditorViewState(editorViewStates: editorCommon.ICodeEditorViewState | null, totalHeight?: number) {
 		this._editorViewStates = editorViewStates;
+		this._updateTextDirection(editorViewStates?.textDirection);
 	}
 
 	private _restoreViewState(state: editorCommon.ICodeEditorViewState | null): void {
 		if (state) {
 			this._textEditor?.restoreViewState(state);
+		}
+	}
+
+	private _updateTextDirection(direction: 'ltr' | 'rtl' | undefined, saveViewState?: boolean) {
+		const normalized: 'ltr' | 'rtl' = direction ?? 'ltr';
+
+		if (this._textDirection === normalized) {
+			return;
+		}
+
+		this._textDirection = normalized;
+		this._onDidChangeState.fire({ textDirectionChanged: true });
+
+		if (saveViewState) {
+			this.saveEditorViewState();
 		}
 	}
 

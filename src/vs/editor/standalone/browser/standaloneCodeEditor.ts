@@ -122,6 +122,11 @@ export interface IGlobalEditorOptions {
 	 */
 	largeFileOptimizations?: boolean;
 	/**
+	 * Controls the base layout direction for the editor UI (gutter, minimap, etc.).
+	 * Defaults to 'ltr'.
+	 */
+	textDirection?: 'ltr' | 'rtl';
+	/**
 	 * Controls whether completions should be computed based on words in the document.
 	 * Defaults to true.
 	 */

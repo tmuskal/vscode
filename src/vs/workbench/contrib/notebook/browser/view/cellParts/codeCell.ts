@@ -116,12 +116,17 @@ export class CodeCell extends Disposable {
 			if (e.focusModeChanged) {
 				this.updateEditorForFocusModeChange(true);
 			}
+
+			if (e.textDirectionChanged) {
+				this.applyTextDirection(this.viewCell.textDirection);
+			}
 		}));
 
 		this.updateEditorOptions();
 		this.updateEditorForFocusModeChange(false);
 		this.updateForOutputHover();
 		this.updateForOutputFocus();
+		this.applyTextDirection(this.viewCell.textDirection);
 
 		this.cellParts.scheduleRenderCell(this.viewCell);
 
@@ -190,6 +195,17 @@ export class CodeCell extends Disposable {
 
 	private updateForOutputFocus() {
 		this.templateData.container.classList.toggle('cell-output-focus', this.viewCell.outputIsFocused);
+	}
+
+	private applyTextDirection(direction: 'ltr' | 'rtl') {
+		this.updateDirectionForNode(this.templateData.container, direction);
+		this.updateDirectionForNode(this.templateData.rootContainer, direction);
+	}
+
+	private updateDirectionForNode(node: HTMLElement, direction: 'ltr' | 'rtl') {
+		node.dir = direction;
+		node.classList.toggle('cell-direction-rtl', direction === 'rtl');
+		node.classList.toggle('cell-direction-ltr', direction === 'ltr');
 	}
 
 	private calculateInitEditorHeight() {

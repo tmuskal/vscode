@@ -32,6 +32,7 @@ export interface CellViewModelStateChangeEvent {
 	readonly inputCollapsedChanged?: boolean;
 	readonly outputCollapsedChanged?: boolean;
 	readonly dragStateChanged?: boolean;
+	readonly textDirectionChanged?: boolean;
 }
 
 export interface NotebookLayoutChangeEvent {

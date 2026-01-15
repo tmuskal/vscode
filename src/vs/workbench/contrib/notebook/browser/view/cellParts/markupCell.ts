@@ -62,6 +62,7 @@ export class MarkupCell extends Disposable {
 		super();
 
 		this.constructDOM();
+		this.applyTextDirection(this.viewCell.textDirection);
 		this.editorPart = templateData.editorPart;
 		this.cellEditorOptions = this._register(new CellEditorOptions(this.notebookEditor.getBaseCellEditorOptions(viewCell.language), this.notebookEditor.notebookOptions, this.configurationService));
 		this.cellEditorOptions.setLineNumbers(this.viewCell.lineNumbers);
@@ -121,6 +122,17 @@ export class MarkupCell extends Disposable {
 		this.templateData.container.classList.toggle('webview-backed-markdown-cell', true);
 	}
 
+	private applyTextDirection(direction: 'ltr' | 'rtl') {
+		this.updateDirectionForNode(this.templateData.container, direction);
+		this.updateDirectionForNode(this.templateData.rootContainer, direction);
+	}
+
+	private updateDirectionForNode(node: HTMLElement, direction: 'ltr' | 'rtl') {
+		node.dir = direction;
+		node.classList.toggle('cell-direction-rtl', direction === 'rtl');
+		node.classList.toggle('cell-direction-ltr', direction === 'ltr');
+	}
+
 	private registerListeners() {
 		this._register(this.viewCell.onDidChangeState(e => {
 			this.templateData.cellParts.updateState(this.viewCell, e);
@@ -159,6 +171,10 @@ export class MarkupCell extends Disposable {
 
 			if (e.cellLineNumberChanged) {
 				this.cellEditorOptions.setLineNumbers(this.viewCell.lineNumbers);
+			}
+
+			if (e.textDirectionChanged) {
+				this.applyTextDirection(this.viewCell.textDirection);
 			}
 		}));
 

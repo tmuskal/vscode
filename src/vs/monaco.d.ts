@@ -2640,6 +2640,7 @@ declare namespace monaco.editor {
 		contributionsState: {
 			[id: string]: unknown;
 		};
+		textDirection?: 'ltr' | 'rtl';
 	}
 
 	/**
@@ -3284,6 +3285,11 @@ declare namespace monaco.editor {
 		 * Defaults to 'prompt'.
 		 */
 		unusualLineTerminators?: 'auto' | 'off' | 'prompt';
+		/**
+		 * Controls the base writing direction used for the editor layout.
+		 * Defaults to `ltr`.
+		 */
+		textDirection?: 'ltr' | 'rtl';
 		/**
 		 * Should the corresponding line be selected when clicking on the line number?
 		 * Defaults to true.
@@ -4338,6 +4344,10 @@ declare namespace monaco.editor {
 		 * Full editor height.
 		 */
 		readonly height: number;
+		/**
+		 * Base writing direction used by the layout.
+		 */
+		readonly direction: 'ltr' | 'rtl';
 		/**
 		 * Left position for the glyph margin.
 		 */

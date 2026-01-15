@@ -25,6 +25,9 @@
 	background-color: var(--vscode-editor-background);
 	overflow-wrap: initial;
 }
+.monaco-editor.monaco-direction-rtl {
+	direction: rtl;
+}
 .monaco-editor-background {
 	background-color: var(--vscode-editor-background);
 }
