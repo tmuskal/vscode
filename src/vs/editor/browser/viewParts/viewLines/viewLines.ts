@@ -153,7 +153,9 @@ export class ViewLines extends ViewPart implements IViewLines {
 
 		PartFingerprints.write(this.domNode, PartFingerprint.ViewLines);
 		this.domNode.setClassName(`view-lines ${MOUSE_CURSOR_TEXT_CSS_CLASS_NAME}`);
+		this.domNode.setPosition('relative');
 		applyFontInfo(this.domNode, fontInfo);
+		this._updateLayoutForTextDirection();
 
 		// --- width & height
 		this._maxLineWidth = 0;
@@ -208,6 +210,9 @@ export class ViewLines extends ViewPart implements IViewLines {
 		this._maxNumberStickyLines = options.get(EditorOption.stickyScroll).maxLineCount;
 
 		applyFontInfo(this.domNode, fontInfo);
+		if (e.hasChanged(EditorOption.layoutInfo) || e.hasChanged(EditorOption.textDirection)) {
+			this._updateLayoutForTextDirection();
+		}
 
 		this._onOptionsMaybeChanged();
 
@@ -234,6 +239,17 @@ export class ViewLines extends ViewPart implements IViewLines {
 		}
 
 		return false;
+	}
+
+	private _updateLayoutForTextDirection(): void {
+		const layoutInfo = this._context.configuration.options.get(EditorOption.layoutInfo);
+		if (layoutInfo.direction === 'rtl') {
+			this.domNode.setRight(layoutInfo.verticalScrollbarWidth);
+			this.domNode.setLeft('auto');
+		} else {
+			this.domNode.setRight('auto');
+			this.domNode.setLeft(0);
+		}
 	}
 	public override onCursorStateChanged(e: viewEvents.ViewCursorStateChangedEvent): boolean {
 		const rendStartLineNumber = this._visibleLines.getStartLineNumber();

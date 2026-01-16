@@ -36,6 +36,8 @@ export type EditorAutoClosingEditStrategy = 'always' | 'auto' | 'never';
 
 type Unknown<T> = { [K in keyof T]: unknown };
 
+export type EditorTextDirection = 'ltr' | 'rtl';
+
 /**
  * Configuration options for auto indentation in the editor
  */
@@ -135,6 +137,11 @@ export interface IEditorOptions {
 	 * Defaults to 'prompt'.
 	 */
 	unusualLineTerminators?: 'auto' | 'off' | 'prompt';
+	/**
+	 * Controls the base writing direction used for the editor layout.
+	 * Defaults to `ltr`.
+	 */
+	textDirection?: EditorTextDirection;
 	/**
 	 * Should the corresponding line be selected when clicking on the line number?
 	 * Defaults to true.
@@ -2435,6 +2442,10 @@ export interface EditorLayoutInfo {
 	 * Full editor height.
 	 */
 	readonly height: number;
+	/**
+	 * Writing direction applied to the editor layout.
+	 */
+	readonly direction: EditorTextDirection;
 
 	/**
 	 * Left position for the glyph margin.
@@ -2594,6 +2605,7 @@ export class EditorLayoutInfoComputer extends ComputedEditorOption<EditorOption.
 		super(EditorOption.layoutInfo, {
 			width: 0,
 			height: 0,
+			direction: 'ltr',
 			glyphMarginLeft: 0,
 			glyphMarginWidth: 0,
 			glyphMarginDecorationLaneCount: 0,
@@ -2913,7 +2925,7 @@ export class EditorLayoutInfoComputer extends ComputedEditorOption<EditorOption.
 			wrappingColumn = wordWrapColumn;
 		}
 
-		const minimapLayout = EditorLayoutInfoComputer._computeMinimapLayout({
+		const minimapLayoutInput = {
 			outerWidth: outerWidth,
 			outerHeight: outerHeight,
 			lineHeight: lineHeight,
@@ -2927,7 +2939,8 @@ export class EditorLayoutInfoComputer extends ComputedEditorOption<EditorOption.
 			viewLineCount: viewLineCount,
 			remainingWidth: remainingWidth,
 			isViewportWrapping: isViewportWrapping,
-		}, env.memory || new ComputeOptionsMemory());
+		};
+		let minimapLayout = EditorLayoutInfoComputer._computeMinimapLayout(minimapLayoutInput, env.memory || new ComputeOptionsMemory());
 
 		if (minimapLayout.renderMinimap !== RenderMinimap.None && minimapLayout.minimapLeft === 0) {
 			// the minimap is rendered to the left, so move everything to the right
@@ -2951,9 +2964,24 @@ export class EditorLayoutInfoComputer extends ComputedEditorOption<EditorOption.
 			}
 		}
 
+		const layoutAvailableWidth = outerWidth - verticalScrollbarWidth;
+		const direction = options.get(EditorOption.textDirection);
+		if (direction === 'rtl') {
+			const mirror = (left: number, width: number) => layoutAvailableWidth - (left + width);
+			glyphMarginLeft = mirror(glyphMarginLeft, glyphMarginWidth);
+			lineNumbersLeft = mirror(lineNumbersLeft, lineNumbersWidth);
+			decorationsLeft = mirror(decorationsLeft, lineDecorationsWidth);
+			contentLeft = mirror(contentLeft, contentWidth);
+			minimapLayout = {
+				...minimapLayout,
+				minimapLeft: mirror(minimapLayout.minimapLeft, minimapLayout.minimapWidth)
+			};
+		}
+
 		return {
 			width: outerWidth,
 			height: outerHeight,
+			direction,
 
 			glyphMarginLeft: glyphMarginLeft,
 			glyphMarginWidth: glyphMarginWidth,
@@ -5864,6 +5892,7 @@ export const enum EditorOption {
 	suggestSelection,
 	tabCompletion,
 	tabIndex,
+	textDirection,
 	trimWhitespaceOnDelete,
 	unicodeHighlighting,
 	unusualLineTerminators,
@@ -6685,6 +6714,18 @@ export const EditorOptions = {
 				nls.localize('unusualLineTerminators.prompt', "Unusual line terminators prompt to be removed."),
 			],
 			description: nls.localize('unusualLineTerminators', "Remove unusual line terminators that might cause problems.")
+		}
+	)),
+	textDirection: register(new EditorStringEnumOption(
+		EditorOption.textDirection, 'textDirection',
+		'ltr' as EditorTextDirection,
+		['ltr', 'rtl'] as const,
+		{
+			enumDescriptions: [
+				nls.localize('textDirection.ltr', "Render the editor layout using a left-to-right direction."),
+				nls.localize('textDirection.rtl', "Render the editor layout using a right-to-left direction.")
+			],
+			description: nls.localize('textDirection', "Controls the base writing direction of the editor layout.")
 		}
 	)),
 	useShadowDOM: register(new EditorBooleanOption(

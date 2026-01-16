@@ -298,7 +298,11 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 			if (e.hasChanged(EditorOption.fontSize)) {
 				this._domElement.style.setProperty('--editor-font-size', options.get(EditorOption.fontSize) + 'px');
 			}
+			if (e.hasChanged(EditorOption.textDirection)) {
+				this._applyTextDirection();
+			}
 		}));
+		this._applyTextDirection();
 
 		this._contextKeyService = this._register(contextKeyService.createScoped(this._domElement));
 		if (codeEditorWidgetOptions.contextKeyValues) {
@@ -442,6 +446,17 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 
 	public getRawOptions(): IEditorOptions {
 		return this._configuration.getRawOptions();
+	}
+
+	private _applyTextDirection(): void {
+		const dir = this._configuration.options.get(EditorOption.textDirection);
+		if (dir === 'rtl') {
+			this._domElement.classList.add('monaco-direction-rtl');
+			this._domElement.setAttribute('dir', 'rtl');
+		} else {
+			this._domElement.classList.remove('monaco-direction-rtl');
+			this._domElement.setAttribute('dir', 'ltr');
+		}
 	}
 
 	public getOverflowWidgetsDomNode(): HTMLElement | undefined {
@@ -1028,10 +1043,12 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		const contributionsState = this._contributions.saveViewState();
 		const cursorState = this._modelData.viewModel.saveCursorState();
 		const viewState = this._modelData.viewModel.saveState();
+		const textDirection = this._configuration.options.get(EditorOption.textDirection);
 		return {
 			cursorState: cursorState,
 			viewState: viewState,
-			contributionsState: contributionsState
+			contributionsState: contributionsState,
+			textDirection
 		};
 	}
 
@@ -1041,6 +1058,10 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		}
 		const codeEditorState = s as editorCommon.ICodeEditorViewState | null;
 		if (codeEditorState && codeEditorState.cursorState && codeEditorState.viewState) {
+			const savedDirection = codeEditorState.textDirection;
+			if (savedDirection !== undefined && savedDirection !== this._configuration.options.get(EditorOption.textDirection)) {
+				this.updateOptions({ textDirection: savedDirection });
+			}
 			const cursorState = <unknown>codeEditorState.cursorState;
 			if (Array.isArray(cursorState)) {
 				if (cursorState.length > 0) {
@@ -2178,6 +2199,7 @@ class EditorContextKeysManager extends Disposable {
 	private readonly _hasNonEmptySelection: IContextKey<boolean>;
 	private readonly _canUndo: IContextKey<boolean>;
 	private readonly _canRedo: IContextKey<boolean>;
+	private readonly _editorTextDirection: IContextKey<'ltr' | 'rtl'>;
 
 	constructor(
 		editor: CodeEditorWidget,
@@ -2201,6 +2223,7 @@ class EditorContextKeysManager extends Disposable {
 		this._hasNonEmptySelection = EditorContextKeys.hasNonEmptySelection.bindTo(contextKeyService);
 		this._canUndo = EditorContextKeys.canUndo.bindTo(contextKeyService);
 		this._canRedo = EditorContextKeys.canRedo.bindTo(contextKeyService);
+		this._editorTextDirection = EditorContextKeys.textDirection.bindTo(contextKeyService);
 
 		this._register(this._editor.onDidChangeConfiguration(() => this._updateFromConfig()));
 		this._register(this._editor.onDidChangeCursorSelection(() => this._updateFromSelection()));
@@ -2227,6 +2250,7 @@ class EditorContextKeysManager extends Disposable {
 		this._editorReadonly.set(options.get(EditorOption.readOnly));
 		this._inDiffEditor.set(options.get(EditorOption.inDiffEditor));
 		this._editorColumnSelection.set(options.get(EditorOption.columnSelection));
+		this._editorTextDirection.set(options.get(EditorOption.textDirection));
 	}
 
 	private _updateFromSelection(): void {

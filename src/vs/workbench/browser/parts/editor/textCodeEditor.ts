@@ -11,7 +11,7 @@ import { applyTextEditorOptions } from '../../../common/editor/editorOptions.js'
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { ITextEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { isEqual } from '../../../../base/common/resources.js';
-import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { ConfigurationChangedEvent, EditorOption, IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { CodeEditorWidget, ICodeEditorWidgetOptions } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { IEditorViewState, ScrollType } from '../../../../editor/common/editorCommon.js';
 import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
@@ -39,6 +39,12 @@ export abstract class AbstractTextCodeEditor<T extends IEditorViewState> extends
 
 	protected createEditorControl(parent: HTMLElement, initialOptions: ICodeEditorOptions): void {
 		this.editorControl = this._register(this.instantiationService.createInstance(CodeEditorWidget, parent, initialOptions, this.getCodeEditorWidgetOptions()));
+
+		this._register(this.editorControl.onDidChangeConfiguration((event: ConfigurationChangedEvent) => {
+			if (event.hasChanged(EditorOption.textDirection) && this.input && this.tracksEditorViewState(this.input)) {
+				this.persistCurrentViewState();
+			}
+		}));
 	}
 
 	protected getCodeEditorWidgetOptions(): ICodeEditorWidgetOptions {

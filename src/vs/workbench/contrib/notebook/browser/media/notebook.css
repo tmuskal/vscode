@@ -438,6 +438,26 @@
 	background-color: var(--vscode-notebook-cellHoverBackground) !important;
 }
 
+/** Cell directionality */
+.notebookOverlay .cell-direction-ltr {
+	direction: ltr;
+}
+
+.notebookOverlay .cell-direction-rtl {
+	direction: rtl;
+}
+
+.notebookOverlay .cell-direction-rtl .cell-title-toolbar {
+	flex-direction: row-reverse;
+}
+
+.notebookOverlay .cell-direction-rtl .cell-bottom-toolbar-container,
+.notebookOverlay .cell-direction-rtl .cell-bottom-toolbar-container .monaco-action-bar,
+.notebookOverlay .cell-direction-rtl .cell-bottom-toolbar-container .monaco-toolbar,
+.notebookOverlay .cell-direction-rtl .cell-bottom-toolbar-container .action-item {
+	flex-direction: row-reverse;
+}
+
 .notebookOverlay .code-cell-row:not(.focused):hover .input-collapse-container,
 .notebookOverlay .code-cell-row:not(.focused).cell-output-hover .input-collapse-container {
 	background-color: var(--vscode-notebook-cellHoverBackground);

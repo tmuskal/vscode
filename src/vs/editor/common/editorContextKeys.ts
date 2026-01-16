@@ -51,6 +51,7 @@ export namespace EditorContextKeys {
 	export const isInEmbeddedEditor = new RawContextKey<boolean>('isInEmbeddedEditor', false, true);
 	export const canUndo = new RawContextKey<boolean>('canUndo', false, true);
 	export const canRedo = new RawContextKey<boolean>('canRedo', false, true);
+	export const textDirection = new RawContextKey<'ltr' | 'rtl'>('editorTextDirection', 'ltr', nls.localize('editorTextDirection', "Current editor layout direction (ltr or rtl)."));
 
 	export const hoverVisible = new RawContextKey<boolean>('editorHoverVisible', false, nls.localize('editorHoverVisible', "Whether the editor hover is visible"));
 	export const hoverFocused = new RawContextKey<boolean>('editorHoverFocused', false, nls.localize('editorHoverFocused', "Whether the editor hover is focused"));

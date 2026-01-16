@@ -122,6 +122,11 @@ export interface IGlobalEditorOptions {
 	 */
 	largeFileOptimizations?: boolean;
 	/**
+	 * Controls the base layout direction for the editor UI (gutter, minimap, etc.).
+	 * Defaults to 'ltr'.
+	 */
+	textDirection?: 'ltr' | 'rtl';
+	/**
 	 * Controls whether completions should be computed based on words in the document.
 	 * Defaults to true.
 	 */
@@ -211,7 +216,7 @@ export interface IStandaloneEditorConstructionOptions extends IEditorConstructio
 /**
  * The options to create a diff editor.
  */
-export interface IStandaloneDiffEditorConstructionOptions extends IDiffEditorConstructionOptions {
+export interface IStandaloneDiffEditorConstructionOptions extends IDiffEditorConstructionOptions, IGlobalEditorOptions {
 	/**
 	 * Initial theme to be used for rendering.
 	 * The current out-of-the-box available themes are: 'vs' (default), 'vs-dark', 'hc-black', 'hc-light.

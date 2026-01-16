@@ -14,10 +14,18 @@
 	cursor: default;
 }
 
+.monaco-editor.monaco-direction-rtl .margin-view-overlays .line-numbers {
+	text-align: left;
+}
+
 .monaco-editor .relative-current-line-number {
 	text-align: left;
 	display: inline-block;
 	width: 100%;
+}
+
+.monaco-editor.monaco-direction-rtl .relative-current-line-number {
+	text-align: right;
 }
 
 .monaco-editor .margin-view-overlays .line-numbers.lh-odd {

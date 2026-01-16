@@ -180,8 +180,6 @@ export class ViewLine implements IVisibleLine {
 		sb.appendString('<div ');
 		if (lineData.textDirection === TextDirection.RTL) {
 			sb.appendString('dir="rtl" ');
-		} else if (lineData.containsRTL) {
-			sb.appendString('dir="ltr" ');
 		}
 		sb.appendString('style="top:');
 		sb.appendString(String(deltaTop));
@@ -189,7 +187,7 @@ export class ViewLine implements IVisibleLine {
 		sb.appendString(String(lineHeight));
 		sb.appendString('px;line-height:');
 		sb.appendString(String(lineHeight));
-		if (lineData.textDirection === TextDirection.RTL) {
+		if (options.textDirection === 'rtl') {
 			sb.appendString('px;padding-right:');
 			sb.appendString(String(options.verticalScrollbarSize));
 		}

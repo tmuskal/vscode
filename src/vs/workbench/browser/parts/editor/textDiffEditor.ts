@@ -7,7 +7,7 @@ import { localize } from '../../../../nls.js';
 import { deepClone } from '../../../../base/common/objects.js';
 import { isObject, assertReturnsDefined } from '../../../../base/common/types.js';
 import { ICodeEditor, IDiffEditor } from '../../../../editor/browser/editorBrowser.js';
-import { IDiffEditorOptions, IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { ConfigurationChangedEvent, EditorOption, IDiffEditorOptions, IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
 import { AbstractTextEditor, IEditorConfiguration } from './textEditor.js';
 import { TEXT_DIFF_EDITOR_ID, IEditorFactoryRegistry, EditorExtensions, ITextDiffEditorPane, IEditorOpenContext, isEditorInput, isTextEditorViewState, createTooLargeFileError } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
@@ -83,6 +83,21 @@ export class TextDiffEditor extends AbstractTextEditor<IDiffEditorViewState> imp
 
 	protected override createEditorControl(parent: HTMLElement, configuration: ICodeEditorOptions): void {
 		this.diffEditorControl = this._register(this.instantiationService.createInstance(DiffEditorWidget, parent, configuration, {}));
+
+		const registerDirectionListener = (editor: ICodeEditor | undefined): void => {
+			if (!editor) {
+				return;
+			}
+
+			this._register(editor.onDidChangeConfiguration((event: ConfigurationChangedEvent) => {
+				if (event.hasChanged(EditorOption.textDirection) && this.input && this.tracksEditorViewState(this.input)) {
+					this.persistCurrentViewState();
+				}
+			}));
+		};
+
+		registerDirectionListener(this.diffEditorControl.getOriginalEditor());
+		registerDirectionListener(this.diffEditorControl.getModifiedEditor());
 	}
 
 	protected updateEditorControlOptions(options: ICodeEditorOptions): void {

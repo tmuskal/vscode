@@ -9,6 +9,7 @@ import { Schemas } from '../../../../../base/common/network.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { DiffElementCellViewModelBase, getFormattedOutputJSON, OutputComparison, outputEqual, OUTPUT_EDITOR_HEIGHT_MAGIC, PropertyFoldingState, SideBySideDiffElementViewModel, SingleSideDiffElementViewModel, DiffElementPlaceholderViewModel, IDiffElementViewModelBase, NotebookDocumentMetadataViewModel } from './diffElementViewModel.js';
 import { CellDiffSideBySideRenderTemplate, CellDiffSingleSideRenderTemplate, DiffSide, DIFF_CELL_MARGIN, INotebookTextDiffEditor, NOTEBOOK_DIFF_CELL_INPUT, NOTEBOOK_DIFF_CELL_PROPERTY, NOTEBOOK_DIFF_CELL_PROPERTY_EXPANDED, CellDiffPlaceholderRenderTemplate, IDiffCellMarginOverlay, NOTEBOOK_DIFF_CELL_IGNORE_WHITESPACE, NotebookDocumentDiffElementRenderTemplate, NOTEBOOK_DIFF_METADATA } from './notebookDiffEditorBrowser.js';
+import { ICodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { CodeEditorWidget, ICodeEditorWidgetOptions } from '../../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { ILanguageService } from '../../../../../editor/common/languages/language.js';
@@ -47,7 +48,7 @@ import { localize } from '../../../../../nls.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ITextResourceConfigurationService } from '../../../../../editor/common/services/textResourceConfiguration.js';
 import { getFormattedMetadataJSON } from '../../common/model/notebookCellTextModel.js';
-import { IDiffEditorOptions } from '../../../../../editor/common/config/editorOptions.js';
+import { EditorOption, IDiffEditorOptions } from '../../../../../editor/common/config/editorOptions.js';
 import { getUnchangedRegionSettings } from './unchangedEditorRegions.js';
 
 export function getOptimizedNestedCodeEditorWidgetOptions(): ICodeEditorWidgetOptions {
@@ -1018,6 +1019,7 @@ abstract class AbstractElementRenderer extends Disposable {
 
 abstract class SingleSideDiffElement extends AbstractElementRenderer {
 	protected _editor!: CodeEditorWidget;
+	private _currentTextDirection: 'ltr' | 'rtl' | undefined;
 	override readonly cell: SingleSideDiffElementViewModel;
 	override readonly templateData: CellDiffSingleSideRenderTemplate;
 	abstract get nestedCellViewModel(): DiffNestedCellViewModel;
@@ -1064,6 +1066,23 @@ abstract class SingleSideDiffElement extends AbstractElementRenderer {
 
 	init() {
 		this._diagonalFill = this.templateData.diagonalFill;
+	}
+
+	private applyTextDirection(direction: 'ltr' | 'rtl') {
+		if (!direction || this._currentTextDirection === direction) {
+			return;
+		}
+
+		this._currentTextDirection = direction;
+		for (const node of [this.templateData.container, this.templateData.body]) {
+			if (!node) {
+				continue;
+			}
+
+			node.dir = direction;
+			node.classList.toggle('cell-direction-rtl', direction === 'rtl');
+			node.classList.toggle('cell-direction-ltr', direction === 'ltr');
+		}
 	}
 
 	override buildBody() {
@@ -1157,6 +1176,7 @@ abstract class SingleSideDiffElement extends AbstractElementRenderer {
 			}
 
 			this._editor = this.templateData.sourceEditor;
+			this.applyTextDirection(this._editor.getOption(EditorOption.textDirection));
 			this._editor.layout(
 				{
 					width: (this.notebookEditor.getLayoutInfo().width - 2 * DIFF_CELL_MARGIN) / 2 - 18,
@@ -1169,6 +1189,13 @@ abstract class SingleSideDiffElement extends AbstractElementRenderer {
 			this._register(this._editor.onDidContentSizeChange((e) => {
 				if (this.cell.cellFoldingState === PropertyFoldingState.Expanded && e.contentHeightChanged && this.cell.layoutInfo.editorHeight !== e.contentHeight) {
 					this.cell.editorHeight = e.contentHeight;
+				}
+			}));
+			this._register(this._editor.onDidChangeConfiguration(e => {
+				if (e.hasChanged(EditorOption.textDirection)) {
+					const direction = this._editor.getOption(EditorOption.textDirection);
+					this.applyTextDirection(direction);
+					this.cell.saveSpirceEditorViewState(this._editor.saveViewState());
 				}
 			}));
 			this._initializeSourceDiffEditor(this.nestedCellViewModel);
@@ -1214,6 +1241,7 @@ abstract class SingleSideDiffElement extends AbstractElementRenderer {
 		const editorViewState = this.cell.getSourceEditorViewState() as editorCommon.IDiffEditorViewState | null;
 		if (editorViewState) {
 			this._editor!.restoreViewState(editorViewState);
+			this.applyTextDirection(this._editor!.getOption(EditorOption.textDirection));
 		}
 
 		const contentHeight = this._editor!.getContentHeight();
@@ -1577,6 +1605,7 @@ export class InsertElement extends SingleSideDiffElement {
 export class ModifiedElement extends AbstractElementRenderer {
 	private _editor?: DiffEditorWidget;
 	private _editorViewStateChanged: boolean;
+	private _currentTextDirection: 'ltr' | 'rtl' | undefined;
 	protected _toolbar!: ToolBar;
 	protected _menu!: IMenu;
 
@@ -1608,6 +1637,23 @@ export class ModifiedElement extends AbstractElementRenderer {
 	}
 
 	init() { }
+
+	private applyTextDirection(direction: 'ltr' | 'rtl') {
+		if (!direction || this._currentTextDirection === direction) {
+			return;
+		}
+
+		this._currentTextDirection = direction;
+		for (const node of [this.templateData.container, this.templateData.body]) {
+			if (!node) {
+				continue;
+			}
+
+			node.dir = direction;
+			node.classList.toggle('cell-direction-rtl', direction === 'rtl');
+			node.classList.toggle('cell-direction-ltr', direction === 'ltr');
+		}
+	}
 	styleContainer(container: HTMLElement): void {
 		container.classList.remove('inserted', 'removed');
 	}
@@ -1892,6 +1938,7 @@ export class ModifiedElement extends AbstractElementRenderer {
 			}
 
 			this._editor = this.templateData.sourceEditor;
+			this.applyTextDirection(this._editor.getModifiedEditor().getOption(EditorOption.textDirection));
 			// If there is only 1 line, then ensure we have the necessary padding to display the button for whitespaces.
 			// E.g. assume we have a cell with 1 line and we add some whitespace,
 			// Then diff editor displays the button `Show Whitespace Differences`, however with 12 paddings on the top, the
@@ -1917,6 +1964,18 @@ export class ModifiedElement extends AbstractElementRenderer {
 					this.cell.editorHeight = e.contentHeight;
 				}
 			}));
+			const registerDirectionListener = (editor: ICodeEditor) => {
+				this._register(editor.onDidChangeConfiguration(e => {
+					if (e.hasChanged(EditorOption.textDirection)) {
+						const direction = editor.getOption(EditorOption.textDirection);
+						this.applyTextDirection(direction);
+						this._editorViewStateChanged = true;
+					}
+				}));
+			};
+
+			registerDirectionListener(this._editor.getOriginalEditor());
+			registerDirectionListener(this._editor.getModifiedEditor());
 			this._initializeSourceDiffEditor();
 		};
 
@@ -2022,6 +2081,7 @@ export class ModifiedElement extends AbstractElementRenderer {
 		const editorViewState = this.cell.getSourceEditorViewState() as editorCommon.IDiffEditorViewState | null;
 		if (editorViewState) {
 			this._editor!.restoreViewState(editorViewState);
+			this.applyTextDirection(this._editor!.getModifiedEditor().getOption(EditorOption.textDirection));
 		}
 
 		const contentHeight = this._editor!.getContentHeight();

@@ -8,6 +8,7 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { Range } from '../../../common/core/range.js';
 import { Selection } from '../../../common/core/selection.js';
+import { EditorOption } from '../../../common/config/editorOptions.js';
 import { ILanguageService } from '../../../common/languages/language.js';
 import { ILanguageConfigurationService } from '../../../common/languages/languageConfigurationRegistry.js';
 import { withTestCodeEditor } from '../testCodeEditor.js';
@@ -239,6 +240,20 @@ suite('CodeEditorWidget', () => {
 			// Test with valid lineNumber should still work
 			const result4 = editor.getBottomForLineNumber(2);
 			assert.ok(result4 > 0, 'Should return a valid position for valid line number');
+		});
+	});
+
+	test('save/restore view state keeps textDirection', () => {
+		withTestCodeEditor('', {}, (editor) => {
+			editor.updateOptions({ textDirection: 'rtl' });
+
+			const savedState = editor.saveViewState();
+			assert.ok(savedState);
+			assert.strictEqual(savedState!.textDirection, 'rtl');
+
+			editor.updateOptions({ textDirection: 'ltr' });
+			editor.restoreViewState(savedState);
+			assert.strictEqual(editor.getOption(EditorOption.textDirection), 'rtl');
 		});
 	});
 

@@ -199,6 +199,7 @@ export interface ICodeEditorViewState {
 	cursorState: ICursorState[];
 	viewState: IViewState;
 	contributionsState: { [id: string]: unknown };
+	textDirection?: 'ltr' | 'rtl';
 }
 /**
  * (Serializable) View state for the diff editor.

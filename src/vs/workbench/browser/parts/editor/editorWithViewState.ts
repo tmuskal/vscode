@@ -80,6 +80,13 @@ export abstract class AbstractEditorWithViewState<T extends object> extends Edit
 		super.saveState();
 	}
 
+	/**
+	 * Persist the current input's view state immediately if possible.
+	 */
+	protected persistCurrentViewState(): void {
+		this.updateEditorViewState(this.input);
+	}
+
 	private updateEditorViewState(input: EditorInput | undefined): void {
 		if (!input || !this.tracksEditorViewState(input)) {
 			return; // ensure we have an input to handle view state for
