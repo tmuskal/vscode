@@ -31,7 +31,7 @@ jobs:
           cache: npm
 
       - name: Install Python setuptools
-        run: python3 -m pip install --upgrade setuptools
+        run: python3 -m pip install --upgrade setuptools --break-system-packages
 
       - name: Install dependencies
         env:
