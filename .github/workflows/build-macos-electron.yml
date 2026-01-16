@@ -1,0 +1,59 @@
+name: Build macOS Electron (Unsigned)
+
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: Build architecture
+        required: true
+        default: arm64
+        type: choice
+        options:
+          - arm64
+          - x64
+
+jobs:
+  build-macos:
+    name: macOS ${{ inputs.arch }} build
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      VSCODE_ARCH: ${{ inputs.arch }}
+      npm_config_arch: ${{ inputs.arch }}
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Python setuptools
+        run: python3 -m pip install --upgrade setuptools
+
+      - name: Install dependencies
+        env:
+          GYP_DEFINES: "kerberos_use_rtld=false"
+        run: npm ci
+
+      - name: Build VS Code (Electron)
+        run: npm run gulp vscode-darwin-${{ inputs.arch }}-min-ci
+
+      - name: Package unsigned zip
+        run: |
+          set -e
+          mkdir -p .build/artifacts
+          APP_DIR="../VSCode-darwin-${{ inputs.arch }}"
+          if [ ! -d "$APP_DIR" ]; then
+            echo "Expected build output not found at $APP_DIR" >&2
+            exit 1
+          fi
+          (cd "$APP_DIR" && zip -Xry "$GITHUB_WORKSPACE/.build/artifacts/VSCode-darwin-${{ inputs.arch }}.zip" .)
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-darwin-${{ inputs.arch }}-unsigned-zip
+          path: .build/artifacts/VSCode-darwin-${{ inputs.arch }}.zip
