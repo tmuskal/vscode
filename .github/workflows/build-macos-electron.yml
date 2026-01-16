@@ -36,6 +36,7 @@ jobs:
       - name: Install dependencies
         env:
           GYP_DEFINES: "kerberos_use_rtld=false"
+          GITHUB_TOKEN: ${{ github.token }}
         run: npm ci
 
       - name: Build VS Code (Electron)
