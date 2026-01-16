@@ -216,7 +216,7 @@ export interface IStandaloneEditorConstructionOptions extends IEditorConstructio
 /**
  * The options to create a diff editor.
  */
-export interface IStandaloneDiffEditorConstructionOptions extends IDiffEditorConstructionOptions {
+export interface IStandaloneDiffEditorConstructionOptions extends IDiffEditorConstructionOptions, IGlobalEditorOptions {
 	/**
 	 * Initial theme to be used for rendering.
 	 * The current out-of-the-box available themes are: 'vs' (default), 'vs-dark', 'hc-black', 'hc-light.

@@ -13,7 +13,7 @@ import { RenderingContext, RestrictedRenderingContext } from './renderingContext
 import { ViewContext } from '../../common/viewModel/viewContext.js';
 import * as viewEvents from '../../common/viewEvents.js';
 import { ViewportData } from '../../common/viewLayout/viewLinesViewportData.js';
-import { EditorOption } from '../../common/config/editorOptions.js';
+import { EditorOption, type EditorLayoutInfo } from '../../common/config/editorOptions.js';
 
 export class ViewOverlays extends ViewPart {
 	private readonly _visibleLines: VisibleLinesCollection<ViewOverlayLine>;
@@ -207,6 +207,7 @@ export class ContentViewOverlays extends ViewOverlays {
 		this._contentWidth = layoutInfo.contentWidth;
 
 		this.domNode.setHeight(0);
+		this._updateLayoutForTextDirection(layoutInfo);
 	}
 
 	// --- begin event handlers
@@ -215,6 +216,9 @@ export class ContentViewOverlays extends ViewOverlays {
 		const options = this._context.configuration.options;
 		const layoutInfo = options.get(EditorOption.layoutInfo);
 		this._contentWidth = layoutInfo.contentWidth;
+		if (e.hasChanged(EditorOption.layoutInfo) || e.hasChanged(EditorOption.textDirection)) {
+			this._updateLayoutForTextDirection(layoutInfo);
+		}
 		return super.onConfigurationChanged(e) || true;
 	}
 	public override onScrollChanged(e: viewEvents.ViewScrollChangedEvent): boolean {
@@ -227,6 +231,16 @@ export class ContentViewOverlays extends ViewOverlays {
 		super._viewOverlaysRender(ctx);
 
 		this.domNode.setWidth(Math.max(ctx.scrollWidth, this._contentWidth));
+	}
+
+	private _updateLayoutForTextDirection(layoutInfo: Readonly<EditorLayoutInfo>): void {
+		if (layoutInfo.direction === 'rtl') {
+			this.domNode.setRight(layoutInfo.verticalScrollbarWidth);
+			this.domNode.setLeft('auto');
+		} else {
+			this.domNode.setRight('auto');
+			this.domNode.setLeft(0);
+		}
 	}
 }
 

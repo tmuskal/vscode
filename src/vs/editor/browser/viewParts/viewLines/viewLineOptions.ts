@@ -5,7 +5,7 @@
 
 import type { ColorScheme } from '../../../../platform/theme/common/theme.js';
 import type { IEditorConfiguration } from '../../../common/config/editorConfiguration.js';
-import { EditorOption } from '../../../common/config/editorOptions.js';
+import { EditorOption, EditorTextDirection } from '../../../common/config/editorOptions.js';
 
 export class ViewLineOptions {
 	public readonly themeType: ColorScheme;
@@ -22,6 +22,7 @@ export class ViewLineOptions {
 	public readonly fontLigatures: string;
 	public readonly verticalScrollbarSize: number;
 	public readonly useGpu: boolean;
+	public readonly textDirection: EditorTextDirection;
 
 	constructor(config: IEditorConfiguration, themeType: ColorScheme) {
 		this.themeType = themeType;
@@ -43,6 +44,7 @@ export class ViewLineOptions {
 		this.fontLigatures = options.get(EditorOption.fontLigatures);
 		this.verticalScrollbarSize = options.get(EditorOption.scrollbar).verticalScrollbarSize;
 		this.useGpu = options.get(EditorOption.experimentalGpuAcceleration) === 'on';
+		this.textDirection = options.get(EditorOption.textDirection);
 	}
 
 	public equals(other: ViewLineOptions): boolean {
@@ -61,6 +63,7 @@ export class ViewLineOptions {
 			&& this.fontLigatures === other.fontLigatures
 			&& this.verticalScrollbarSize === other.verticalScrollbarSize
 			&& this.useGpu === other.useGpu
+			&& this.textDirection === other.textDirection
 		);
 	}
 }

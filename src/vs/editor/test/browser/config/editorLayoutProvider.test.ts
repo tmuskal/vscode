@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { ComputedEditorOptions } from '../../../browser/config/editorConfiguration.js';
-import { EditorLayoutInfo, EditorLayoutInfoComputer, EditorMinimapOptions, EditorOption, EditorOptions, InternalEditorRenderLineNumbersOptions, InternalEditorScrollbarOptions, RenderLineNumbersType, RenderMinimap } from '../../../common/config/editorOptions.js';
+import { EditorLayoutInfo, EditorLayoutInfoComputer, EditorMinimapOptions, EditorOption, EditorOptions, EditorTextDirection, InternalEditorRenderLineNumbersOptions, InternalEditorScrollbarOptions, RenderLineNumbersType, RenderMinimap } from '../../../common/config/editorOptions.js';
 
 interface IEditorLayoutProviderOpts {
 	readonly outerWidth: number;
@@ -42,7 +42,7 @@ suite('Editor ViewLayout - EditorLayoutProvider', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	function doTest(input: IEditorLayoutProviderOpts, expected: EditorLayoutInfo): void {
+	function doTest(input: IEditorLayoutProviderOpts, expected: Omit<EditorLayoutInfo, 'direction'> & { direction?: EditorTextDirection }): void {
 		const options = new ComputedEditorOptions();
 		options._write(EditorOption.glyphMargin, input.showGlyphMargin);
 		options._write(EditorOption.lineNumbersMinChars, input.lineNumbersMinChars);
@@ -107,7 +107,11 @@ suite('Editor ViewLayout - EditorLayoutProvider', () => {
 			pixelRatio: input.pixelRatio,
 			glyphMarginDecorationLaneCount: 1,
 		});
-		assert.deepStrictEqual(actual, expected);
+		const expectedWithDirection: EditorLayoutInfo = {
+			direction: 'ltr',
+			...expected,
+		};
+		assert.deepStrictEqual(actual, expectedWithDirection);
 	}
 
 	test('EditorLayoutProvider 1', () => {

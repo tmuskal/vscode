@@ -160,6 +160,46 @@
 	font-style: italic;
 }
 
+/** Cell directionality */
+.monaco-workbench .notebook-text-diff-editor .cell-direction-ltr {
+	direction: ltr;
+}
+
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl {
+	direction: rtl;
+}
+
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .input-header-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .output-header-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .metadata-header-container {
+	flex-direction: row-reverse;
+}
+
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .input-header-container .property-toolbar,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .output-header-container .property-toolbar,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .metadata-header-container .property-toolbar {
+	margin-left: 0;
+	margin-right: auto;
+}
+
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .cell-diff-editor-container .editor-input-toolbar-container {
+	left: 16px;
+	right: auto;
+}
+
+.monaco-workbench .notebook-text-diff-editor .cell-direction-ltr .output-view-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .output-view-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-ltr .output-view-container .output-inner-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .output-view-container .output-inner-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-ltr .output-view-container .output-view-container-left,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .output-view-container .output-view-container-left,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-ltr .output-view-container .output-view-container-right,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .output-view-container .output-view-container-right,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-ltr .output-info-container,
+.monaco-workbench .notebook-text-diff-editor .cell-direction-rtl .output-info-container {
+	direction: inherit;
+}
+
 .notebook-text-diff-editor {
 	overflow: hidden;
 }

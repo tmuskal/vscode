@@ -166,7 +166,8 @@ export class View extends ViewEventHandler {
 		// These two dom nodes must be constructed up front, since references are needed in the layout provider (scrolling & co.)
 		this._linesContent = createFastDomNode(document.createElement('div'));
 		this._linesContent.setClassName('lines-content' + ' monaco-editor-background');
-		this._linesContent.setPosition('absolute');
+		this._linesContent.setPosition('relative');
+		this._linesContent.setAttribute('dir', this._context.configuration.options.get(EditorOption.textDirection));
 
 		this.domNode = createFastDomNode(document.createElement('div'));
 		this.domNode.setClassName(this._getEditorClassName());
@@ -442,6 +443,9 @@ export class View extends ViewEventHandler {
 	}
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
 		this.domNode.setClassName(this._getEditorClassName());
+		if (e.hasChanged(EditorOption.textDirection)) {
+			this._linesContent.setAttribute('dir', this._context.configuration.options.get(EditorOption.textDirection));
+		}
 		this._updateEditContext();
 		this._applyLayout();
 		return false;

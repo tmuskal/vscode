@@ -2605,6 +2605,7 @@ export class EditorLayoutInfoComputer extends ComputedEditorOption<EditorOption.
 		super(EditorOption.layoutInfo, {
 			width: 0,
 			height: 0,
+			direction: 'ltr',
 			glyphMarginLeft: 0,
 			glyphMarginWidth: 0,
 			glyphMarginDecorationLaneCount: 0,

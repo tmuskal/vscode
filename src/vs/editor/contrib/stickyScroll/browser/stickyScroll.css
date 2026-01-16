@@ -18,6 +18,10 @@
 	background-color: var(--vscode-editorStickyScrollGutter-background);
 }
 
+.monaco-editor.monaco-direction-rtl .sticky-widget .sticky-widget-line-numbers {
+	float: right;
+}
+
 .monaco-editor .sticky-widget.peek .sticky-widget-line-numbers {
 	background-color: var(--vscode-peekViewEditorStickyScrollGutter-background);
 }
