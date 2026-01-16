@@ -40,7 +40,9 @@ jobs:
         run: npm ci
 
       - name: Build VS Code (Electron)
-        run: npm run gulp vscode-darwin-${{ inputs.arch }}-min-ci
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gulp vscode-darwin-${{ inputs.arch }}-min
 
       - name: Package unsigned zip
         run: |
