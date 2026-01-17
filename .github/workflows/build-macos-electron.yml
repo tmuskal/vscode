@@ -16,7 +16,7 @@ jobs:
   build-macos:
     name: macOS ${{ inputs.arch }} build
     runs-on: macos-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
     env:
       VSCODE_ARCH: ${{ inputs.arch }}
       npm_config_arch: ${{ inputs.arch }}
@@ -30,6 +30,18 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Cache Electron and node-gyp downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/Library/Caches/electron
+            ~/.cache/node-gyp
+            ~/Library/Caches/node-gyp
+          key: ${{ runner.os }}-${{ inputs.arch }}-electron-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ inputs.arch }}-electron-
+
       - name: Install Python setuptools
         run: python3 -m pip install --upgrade setuptools --break-system-packages
 
@@ -39,10 +51,30 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: npm ci
 
-      - name: Build VS Code (Electron)
+      - name: Build core (compile)
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: npm run gulp vscode-darwin-${{ inputs.arch }}-min
+        run: npm run gulp compile-build-without-mangling
+
+      - name: Build extensions
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gulp compile-extensions-build
+
+      - name: Build extension media
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gulp compile-extension-media-build
+
+      - name: Bundle and minify
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gulp minify-vscode
+
+      - name: Package VS Code (Electron)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gulp vscode-darwin-${{ inputs.arch }}-min-ci
 
       - name: Package unsigned zip
         run: |
