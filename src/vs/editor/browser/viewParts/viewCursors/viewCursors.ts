@@ -8,7 +8,7 @@ import { FastDomNode, createFastDomNode } from '../../../../base/browser/fastDom
 import { IntervalTimer, TimeoutTimer } from '../../../../base/common/async.js';
 import { ViewPart } from '../../view/viewPart.js';
 import { IViewCursorRenderData, ViewCursor, CursorPlurality } from './viewCursor.js';
-import { TextEditorCursorBlinkingStyle, TextEditorCursorStyle, EditorOption } from '../../../common/config/editorOptions.js';
+import { TextEditorCursorBlinkingStyle, TextEditorCursorStyle, EditorOption, type EditorLayoutInfo } from '../../../common/config/editorOptions.js';
 import { Position } from '../../../common/core/position.js';
 import {
 	editorCursorBackground, editorCursorForeground,
@@ -75,6 +75,7 @@ export class ViewCursors extends ViewPart {
 		this._domNode.setAttribute('role', 'presentation');
 		this._domNode.setAttribute('aria-hidden', 'true');
 		this._updateDomClassName();
+		this._updateLayoutForTextDirection(options.get(EditorOption.layoutInfo));
 
 		this._domNode.appendChild(this._primaryCursor.getDomNode());
 
@@ -120,12 +121,25 @@ export class ViewCursors extends ViewPart {
 
 		this._updateBlinking();
 		this._updateDomClassName();
+		if (e.hasChanged(EditorOption.layoutInfo) || e.hasChanged(EditorOption.textDirection)) {
+			this._updateLayoutForTextDirection(options.get(EditorOption.layoutInfo));
+		}
 
 		this._primaryCursor.onConfigurationChanged(e);
 		for (let i = 0, len = this._secondaryCursors.length; i < len; i++) {
 			this._secondaryCursors[i].onConfigurationChanged(e);
 		}
 		return true;
+	}
+
+	private _updateLayoutForTextDirection(layoutInfo: Readonly<EditorLayoutInfo>): void {
+		if (layoutInfo.direction === 'rtl') {
+			this._domNode.setRight(layoutInfo.verticalScrollbarWidth);
+			this._domNode.setLeft('auto');
+		} else {
+			this._domNode.setRight('auto');
+			this._domNode.setLeft(0);
+		}
 	}
 	private _onCursorPositionChanged(position: Position, secondaryPositions: Position[], reason: CursorChangeReason): void {
 		const pauseAnimation = (
